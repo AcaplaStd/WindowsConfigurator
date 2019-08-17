@@ -258,7 +258,7 @@ echo Done!
 
 :: Remove UWP 
 set conf=Y
-set /p "conf= Remove useless UWP Apps (Not all apps, see cmd file for details)? [Y/n] ""
+set /p "conf= Remove useless UWP Apps (Not all apps, see cmd file for details)? [Y/n] "
 if "%conf%" neq "Y" if "%Conf%" neq "y" goto enduwp
 echo Removing UWP Apps...
 call :rm_uwp ZuneVideo
@@ -333,7 +333,7 @@ echo Done!
 
 :: Remove UWP 2
 set conf=N
-set /p "conf= Remove calcualtor (You need to install other calculator)? [y/N] ""
+set /p "conf= Remove calcualtor (You need to install other calculator)? [y/N] "
 if "%conf%" neq "Y" if "%Conf%" neq "y" goto endcalc
 echo Removing calcualtor...
 call :rm_uwp Calculator
@@ -353,7 +353,7 @@ echo Done! Restart your computer.
 
 :: Fix windows setings
 set conf=Y
-set /p "conf= Fix windows default settings (show hidden files, autorun delay, fast startup, etc.) and disable useless context menu entries (see cmd file for details)? [Y/n] ""
+set /p "conf= Fix windows default settings (show hidden files, autorun delay, fast startup, etc.) and disable useless context menu entries (see cmd file for details)? [Y/n] "
 if "%conf%" neq "Y" if "%Conf%" neq "y" goto endsettings
 reg add "HKCU\Control Panel\Accessibility\StickyKeys" /v "Flags" /t REG_SZ /d "506" /f
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Power" /v "HiberbootEnabled" /t REG_DWORD /d 0 /f
@@ -418,7 +418,7 @@ set /p "conf= Replace notepad with sublime text (Not recommended to run multiple
 if "%conf%" neq "Y" if "%Conf%" neq "y" goto endsubl
 if not exist "%~dp0Sublime Text 3\sublime_text.exe" goto sublnotfound
 if not exist "%~dp0Sublime Text 3\subl.exe" goto sublnotfound
-if not exist "%~dp0Sublime Text 3\sublime_launcher.exe" goto sublnotfound
+if not exist "%~dp0Sublime Text 3\sublime_launcher.ps1" goto sublnotfound
 
 set conf=N
 set /p "conf= Copy sublime text to system? [y/N] "
@@ -431,19 +431,19 @@ mkdir "%windir%\AcaplaStd\Sublime Text 3"
 xcopy "%~dp0Sublime Text 3" "%windir%\AcaplaStd\Sublime Text 3\" /h /e /c
 setx /M PATH "%PATH%;%windir%\AcaplaStd\Sublime Text 3"
 set PATH=%PATH%;%windir%\AcaplaStd\Sublime Text 3
-reg add "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\notepad.exe" /v "Debugger" /t REG_SZ /d "\"%windir%\AcaplaStd\Sublime Text 3\sublime_launcher.exe\" -z" /f
+reg add "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\notepad.exe" /v "Debugger" /t REG_SZ /d "%windir%\System32\WindowsPowerShell\v1.0\powershell.exe -nologo -windowstyle hidden -file \"%windir%\AcaplaStd\Sublime Text 3\sublime_launcher.ps1\" -z" /f
 echo Done!
 goto endsubl
 
 :subl_nocopysys
 setx /M PATH "%PATH%;%~dp0Sublime Text 3"
 set PATH=%PATH%;%~dp0Sublime Text 3
-reg add "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\notepad.exe" /v "Debugger" /t REG_SZ /d "\"%~dp0Sublime Text 3\sublime_launcher.exe\" -z" /f
+reg add "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\notepad.exe" /v "Debugger" /t REG_SZ /d "%windir%\System32\WindowsPowerShell\v1.0\powershell.exe -nologo -windowstyle hidden -file \"%~dp0Sublime Text 3\sublime_launcher.ps1\" -z" /f
 echo Done!
 goto endsubl
 
 :sublnotfound
-echo %~dp0Sublime\sublime_text.exe not found!
+echo Sublime Text not found!
 :endsubl
 
 :: Tools

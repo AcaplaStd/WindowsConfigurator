@@ -3,8 +3,7 @@ $argumentsPassed = 0
 $res = ""
 for ($i=0; $i -le $numOfArgs; $i++)
 {
-    write-host "folder: $($args[$i])"
-    if ($args[$i] -eq "-z") { i++ }
+    if ($args[$i] -eq "-z") { $i++ }
     else {
         if ($argumentsPassed -ne 0) {
             $res += " "
