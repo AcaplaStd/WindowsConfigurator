@@ -1,4 +1,4 @@
-rem @echo off
+@echo off
 setlocal enableDelayedExpansion
 set /a skip=0
 set res=
@@ -15,13 +15,6 @@ for %%x in (%*) do (
         )
         set /a skip=0
     )
-    echo %%~x
-    echo.!res!
-    echo.!skip!
 )
-if "%res%" neq """" (
-    "%~dp0sublime_text.exe" "%res%"
-) else (
-    "%~dp0sublime_text.exe"
-)
+start "" "%~dp0sublime_text.exe" "%res%"
 endlocal
