@@ -36,9 +36,9 @@ exit /b 0
 :disable_svc_rand
 for /f "tokens=5 delims=\" %%a in ('reg query HKLM\SYSTEM\CurrentControlSet\Services /k /f %~1_') do (
     sc stop %%a
-    reg add "HKLM\SYSTEM\CurrentControlSet\Services\%%a" /v "Start" /t REG_DWORD /d 4 /f
+    reg add "HKLM\SYSTEM\CurrentControlSet\Services\%%a" /v "Start" /t REG_DWORD /d 3 /f
 )
-call :disable_svc %~1
+call :disable_svc_lite %~1
 exit /b 0
 
 :disable_svc_hard
@@ -91,6 +91,7 @@ set conf=Y
 set /p "conf= Disable telemetry, diagnostics, crash reporting, feedback, mobile devices services? [Y/n] "
 if "%conf%" neq "Y" if "%Conf%" neq "y" goto endtel
 echo Disabling telemetry...
+taskkill /f /im explorer.exe
 schtasks /change /disable /tn "\Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser"
 schtasks /change /disable /tn "\Microsoft\Windows\Application Experience\ProgramDataUpdater"
 schtasks /change /disable /tn "\Microsoft\Windows\Application Experience\StartupAppTask"
@@ -225,6 +226,7 @@ reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\WINEVT\Channels\Microsof
 call :disable_svc DiagTrack
 call :disable_svc dmwappushservice
 call :disable_svc diagnosticshub.standardcollector.service
+start explorer.exe
 :endtel
 
 :: Defender
@@ -238,12 +240,18 @@ call :disable_svc_hard WinDefend
 call :disable_svc_hard WdNisSvc
 call :disable_svc_hard Sense
 call :disable_svc_hard SecurityHealthService
-call :disable_svc_hard mpssvc
-call :disable_svc_hard wscsvc
+::call :disable_svc_hard wscsvc
 echo ---------------------------
 echo ---- Ignore any errors ----
 echo ---------------------------
 taskkill /f /im SecurityHealthSystray.exe
+reg add "HKLM\SOFTWARE\Microsoft\Security Center" /v "AntiVirusDisableNotify" /t REG_DWORD /d 1 /f
+%psexec% reg add "HKLM\SOFTWARE\Microsoft\Security Center\Svc" /v "AntiVirusOverride" /t REG_DWORD /d 1 /f
+reg add "HKLM\SOFTWARE\Microsoft\Security Center" /v "FirewallDisableNotify" /t REG_DWORD /d 1 /f
+%psexec% reg add "HKLM\SOFTWARE\Microsoft\Security Center\Svc" /v "FirewallOverride" /t REG_DWORD /d 1 /f
+reg add "HKLM\SOFTWARE\Microsoft\Security Center" /v "AntiSpywareDisableNotify" /t REG_DWORD /d 1 /f
+%psexec% reg add "HKLM\SOFTWARE\Microsoft\Security Center\Svc" /v "AntiSpywareOverride" /t REG_DWORD /d 1 /f
+reg add "HKLM\SOFTWARE\Microsoft\Security Center" /v "UpdatesDisableNotify" /t REG_DWORD /d 1 /f
 reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v "SecurityHealth" /f
 reg delete "HKLM\SOFTWARE\Classes\CLSID\{09A47860-11B0-4DA5-AFA5-26D86198A780}\InprocServer32" /v "" /f
 echo Done!
@@ -263,22 +271,34 @@ call :disable_svc_rand WpnUserService
 call :disable_svc_rand WpnService
 call :disable_svc_rand UnistoreSvc
 call :disable_svc_rand cbdhsvc
-call :disable_svc MapsBroker
-call :disable_svc lfsvc
-call :disable_svc WMPNetworkSvc
-call :disable_svc WerSvc
+call :disable_svc_lite MapsBroker
+call :disable_svc_lite lfsvc
+call :disable_svc_lite WMPNetworkSvc
+call :disable_svc_lite WerSvc
 call :disable_svc SSDPSRV
-call :disable_svc SCardSvr
-call :disable_svc SensorService
-call :disable_svc SensrSvc
+call :disable_svc_lite SCardSvr
+call :disable_svc_lite SensorService
+call :disable_svc_lite SensrSvc
 call :disable_svc_hard WinHttpAutoProxySvc
 call :disable_svc_lite DPS
 call :disable_svc_sudo_lite DoSvc
-call :disable_svc_lite FDResPub
+call :disable_svc FDResPub
 call :disable_svc_lite CDPSvc
-call :disable_svc RetailDemo
-call :disable_svc SensorDataService
-call :disable_svc DusmSvc
+call :disable_svc_lite RetailDemo
+call :disable_svc_lite SensorDataService
+call :disable_svc_lite DusmSvc
+call :disable_svc_lite NcdAutoSetup
+call :disable_svc SEMgrSvc
+call :disable_svc_lite VaultSvc
+call :disable_svc_lite StorSvc
+call :disable_svc_lite WdiServiceHost
+call :disable_svc_lite AppMgmt
+call :disable_svc_lite fdPHost
+call :disable_svc PolicyAgent
+call :disable_svc IKEEXT
+call :disable_svc WPDBusEnum
+call :disable_svc_sudo NgcCtnrSvc
+reg add "HKCU\SOFTWARE\Policies\Microsoft\Windows\Explorer" /v "EnableLegacyBalloonNotifications" /t REG_DWORD /d 1 /f
 echo ---------------------------
 echo ---- Ignore any errors ----
 echo ---------------------------
@@ -290,8 +310,8 @@ set /p "conf= Disable print and scan services? [Y/n] "
 if "%conf%" neq "Y" if "%Conf%" neq "y" goto endprsvc
 echo Disabling print and scan services...
 call :disable_svc_rand PrintWorkflowUserSvc
-call :disable_svc_sudo PrintWorkflowUserSvc
-call :disable_svc Spooler
+call :disable_svc_sudo_lite PrintWorkflowUserSvc
+call :disable_svc_lite Spooler
 echo ---------------------------
 echo ---- Ignore any errors ----
 echo ---------------------------
@@ -302,7 +322,7 @@ set conf=Y
 set /p "conf= Disable biometry services? [Y/n] "
 if "%conf%" neq "Y" if "%Conf%" neq "y" goto endprsvc
 echo Disabling biometry services...
-call :disable_svc WbioSrvc
+call :disable_svc_lite WbioSrvc
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Personalization" /v "NoLockScreenCamera" /t REG_DWORD /d 1 /f
 :endprsvc
 
@@ -464,6 +484,7 @@ echo.
 set conf=Y
 set /p "conf= Fix windows default settings (show hidden files, autorun delay, fast startup, etc.) and disable useless context menu entries (see cmd file for details)? [Y/n] "
 if "%conf%" neq "Y" if "%Conf%" neq "y" goto endsettings
+taskkill /f /im explorer.exe
 reg add "HKCU\Control Panel\Accessibility\StickyKeys" /v "Flags" /t REG_SZ /d "506" /f
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Power" /v "HiberbootEnabled" /t REG_DWORD /d 0 /f
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Explorer" /v "NoNewAppAlert" /t REG_DWORD /d 1 /f
@@ -512,6 +533,7 @@ reg add "HKCR\batfile\shell\print" /v "ProgrammaticAccessOnly" /t REG_SZ /d "" /
 reg add "HKCR\cmdfile\shell\print" /v "ProgrammaticAccessOnly" /t REG_SZ /d "" /f
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel" /v "AllItemsIconView" /t REG_DWORD /d 1 /f
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel" /v "StartupPage" /t REG_DWORD /d 1 /f
+reg add "HKCU\Software\Microsoft\Windows\Shell\Bags\1\Desktop" /v "IconSize" /t REG_DWORD /d 32 /f
 reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{088e3905-0323-4b02-9826-5d99428e115f}" /f
 reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{0DB7E03F-FC29-4DC6-9020-FF41B59E513A}" /f
 reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{1CF1260C-4DD0-4ebb-811F-33C572699FDE}" /f
@@ -523,6 +545,7 @@ reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\N
 reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{A8CDFF1C-4878-43be-B5FD-F8091C1C60D0}" /f
 reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{d3162b92-9365-467a-956b-92703aca08af}" /f
 reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{f86fa3ab-70d2-4fc7-9c99-fcbf05467f3a}" /f
+start explorer.exe
 echo Done!
 :endsettings
 
@@ -534,6 +557,30 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v "FeatureSettingsOverrideMask" /t REG_DWORD /d 3 /f
 echo Done!
 :endmeltdown
+
+
+echo.
+echo ---------------------------------------------
+echo --------------------Apps---------------------
+echo ---------------------------------------------
+echo.
+
+:: QTTabBar
+set conf=Y
+set /p "conf= Install QTTabBar? [Y/n] "
+if "%conf%" neq "Y" if "%Conf%" neq "y" goto endqttabbar
+if not exist "%~dp0apps\QTTabBar_1038.exe" goto qttabbarnotfound
+if not exist "%~dp0apps\QTTabBar_Update_1040.exe" goto qttabbarnotfound
+"%~dp0apps\QTTabBar_1038.exe" /I
+"%~dp0apps\QTTabBar_Update_1040.exe" /I
+taskkill /f /im explorer.exe
+start explorer.exe
+echo Done!
+goto endqttabbar
+
+:qttabbarnotfound
+echo Sublime Text not found!
+:endqttabbar
 
 :: Sublime text
 :subl
@@ -635,16 +682,6 @@ echo Removing outdated drivers...
 powershell -file "%~dp0Drivers.ps1"
 echo Done!
 :enddrivers
-
-:: Explorer
-set conf=Y
-set /p "conf= Restart explorer? [Y/n] "
-if "%conf%" neq "Y" if "%Conf%" neq "y" goto endrestart
-echo Restarting explorer...
-taskkill /f /im explorer.exe
-start explorer.exe
-echo Done!
-:endrestart
 
 :eof
 pause
